@@ -1,4 +1,5 @@
 import { Monitor, Apple, Terminal, ChevronRight, ArrowDownToLine, Cpu, MemoryStick, Gauge } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const DOWNLOADS = [
   {
@@ -84,95 +85,162 @@ export default function HeroDownload() {
       {/* Download cards */}
       <div className="mt-12 w-full max-w-4xl mx-auto px-6 animate-fade-up-delay-2">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {DOWNLOADS.map((dl) => {
-            const Icon = dl.icon;
-            return (
-              <a
-                key={dl.os}
-                href={
-                  dl.os === "macOS"
-                    ? "https://github.com/alexandrudumbrava38-afk/Vora_Server/releases/download/v1.0.0-beta/Vora.Node-1.0.0-arm64.dmg"
-                    : "#"
-                }
-                target={dl.os === "macOS" ? "_blank" : undefined}
-                rel={dl.os === "macOS" ? "noopener noreferrer" : undefined}
-                className="group relative flex flex-col items-center gap-4 rounded-2xl px-6 py-7 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl"
-                style={
-                  dl.primary
-                    ? {
-                        backgroundColor: "#F4F482",
-                        boxShadow: "0 20px 50px rgba(244,244,130,0.25)",
-                      }
-                    : {
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.09)",
-                      }
-                }
-              >
-                {dl.primary && (
-                  <span
-                    className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full"
-                    style={{ backgroundColor: "#091540", color: "#F4F482" }}
-                  >
-                    Consigliato
-                  </span>
-                )}
+          {(() => {
+            const exeLink = "https://github.com/alexandrudumbrava38-afk/Vora_Desktop/releases/download/v1.1.0/Vora.Node.Setup.1.1.0.exe";
+            const dmgLink = "https://github.com/alexandrudumbrava38-afk/Vora_Desktop/releases/download/v1.1.0/Vora.Node-1.1.0-arm64.dmg";
 
-                {/* Icon box */}
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-200 group-hover:scale-110"
+            const [platform, setPlatform] = (() => {
+              // lightweight platform detection hook emulation inside render scope
+              // (we keep it simple so we don't change surrounding component structure)
+              const [p, setP] = useState("unknown");
+              useEffect(() => {
+                const ua = navigator.userAgent || navigator.vendor || window.opera || "";
+                const platformString = (navigator.platform || "").toLowerCase();
+                const isAndroid = /android/i.test(ua);
+                const isIOS = /iPad|iPhone|iPod/.test(ua) || (platformString === "macintel" && navigator.maxTouchPoints > 1);
+                const isMac = /macintosh|mac os x/i.test(ua) || platformString.includes("mac");
+                const isWindows = /win32|win64|windows/i.test(ua) || platformString.includes("win");
+
+                if (isAndroid || isIOS) setP("mobile");
+                else if (isMac) setP("mac");
+                else if (isWindows) setP("windows");
+                else setP("other");
+              }, []);
+              return [p, setP];
+            })();
+
+            return DOWNLOADS.map((dl) => {
+              const Icon = dl.icon;
+
+              // default values
+              let href = "#";
+              let target = undefined;
+              let rel = undefined;
+              let onClick = undefined;
+              let downloadLabel = `Scarica ${dl.ext}`;
+              let downloadAttr = undefined;
+
+              // Always provide real links and download attributes for Windows and macOS cards
+              if (dl.os === "Windows") {
+                href = exeLink;
+                target = "_blank";
+                rel = "noopener noreferrer";
+                downloadAttr = "Vora.Node.Setup.1.1.0.exe";
+              }
+              if (dl.os === "macOS") {
+                href = dmgLink;
+                target = "_blank";
+                rel = "noopener noreferrer";
+                downloadAttr = "Vora.Node-1.1.0-arm64.dmg";
+              }
+
+              // Adjust the visible label depending on detected platform; do not block clicks for desktop
+              if (platform === "windows" && dl.os === "Windows") {
+                downloadLabel = "Scarica per Windows";
+              } else if (platform === "mac" && dl.os === "macOS") {
+                downloadLabel = "Scarica per macOS";
+              } else if (platform === "mobile") {
+                // on mobile, disable the link action and show an alert
+                href = "#";
+                target = undefined;
+                rel = undefined;
+                downloadAttr = undefined;
+                onClick = (e) => {
+                  // only prevent default for mobile case so desktop clicks remain effective
+                  e.preventDefault();
+                  // eslint-disable-next-line no-alert
+                  alert("Disponibile per Desktop — usa un computer per scaricare l'app.");
+                };
+                downloadLabel = "Disponibile per Desktop";
+              }
+
+              return (
+                <a
+                  key={dl.os}
+                  href={href}
+                  target={target}
+                  rel={rel}
+                  onClick={onClick}
+                  download={downloadAttr}
+                  aria-disabled={platform === "mobile"}
+                  className="group relative flex flex-col items-center gap-4 rounded-2xl px-6 py-7 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl"
                   style={
                     dl.primary
-                      ? { backgroundColor: "rgba(9,21,64,0.12)" }
-                      : { backgroundColor: "rgba(244,244,130,0.08)", border: "1px solid rgba(244,244,130,0.15)" }
+                      ? {
+                          backgroundColor: "#F4F482",
+                          boxShadow: "0 20px 50px rgba(244,244,130,0.25)",
+                        }
+                      : {
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.09)",
+                        }
                   }
                 >
-                  <Icon
-                    className="w-7 h-7"
-                    style={{ color: dl.primary ? "#091540" : "#F4F482" }}
-                    strokeWidth={1.8}
-                  />
-                </div>
+                  {dl.primary && (
+                    <span
+                      className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full"
+                      style={{ backgroundColor: "#091540", color: "#F4F482" }}
+                    >
+                      Consigliato
+                    </span>
+                  )}
 
-                {/* Labels */}
-                <div className="text-center">
-                  <p
-                    className="text-xl font-black font-space-grotesk tracking-tight"
-                    style={{ color: dl.primary ? "#091540" : "#fff" }}
+                  {/* Icon box */}
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-200 group-hover:scale-110"
+                    style={
+                      dl.primary
+                        ? { backgroundColor: "rgba(9,21,64,0.12)" }
+                        : { backgroundColor: "rgba(244,244,130,0.08)", border: "1px solid rgba(244,244,130,0.15)" }
+                    }
                   >
-                    {dl.os}
-                  </p>
-                  <p
-                    className="text-xs mt-0.5"
-                    style={{ color: dl.primary ? "rgba(9,21,64,0.55)" : "rgba(255,255,255,0.35)" }}
+                    <Icon
+                      className="w-7 h-7"
+                      style={{ color: dl.primary ? "#091540" : "#F4F482" }}
+                      strokeWidth={1.8}
+                    />
+                  </div>
+
+                  {/* Labels */}
+                  <div className="text-center">
+                    <p
+                      className="text-xl font-black font-space-grotesk tracking-tight"
+                      style={{ color: dl.primary ? "#091540" : "#fff" }}
+                    >
+                      {dl.os}
+                    </p>
+                    <p
+                      className="text-xs mt-0.5"
+                      style={{ color: dl.primary ? "rgba(9,21,64,0.55)" : "rgba(255,255,255,0.35)" }}
+                    >
+                      {dl.subtitle}
+                    </p>
+                  </div>
+
+                  {/* Download button */}
+                  <div
+                    className="flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full transition-all duration-200 group-hover:gap-3"
+                    style={
+                      dl.primary
+                        ? { backgroundColor: "#091540", color: "#F4F482" }
+                        : { backgroundColor: "rgba(244,244,130,0.1)", color: "#F4F482", border: "1px solid rgba(244,244,130,0.2)" }
+                    }
                   >
-                    {dl.subtitle}
+                    <ArrowDownToLine size={15} strokeWidth={2} />
+                    {downloadLabel}
+                  </div>
+
+                  {/* Version */}
+                  <p
+                    className="text-xs"
+                    style={{ color: dl.primary ? "rgba(9,21,64,0.4)" : "rgba(255,255,255,0.2)" }}
+                  >
+                    {dl.version}
                   </p>
-                </div>
-
-                {/* Download button */}
-                <div
-                  className="flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full transition-all duration-200 group-hover:gap-3"
-                  style={
-                    dl.primary
-                      ? { backgroundColor: "#091540", color: "#F4F482" }
-                      : { backgroundColor: "rgba(244,244,130,0.1)", color: "#F4F482", border: "1px solid rgba(244,244,130,0.2)" }
-                  }
-                >
-                  <ArrowDownToLine size={15} strokeWidth={2} />
-                  Scarica {dl.ext}
-                </div>
-
-                {/* Version */}
-                <p
-                  className="text-xs"
-                  style={{ color: dl.primary ? "rgba(9,21,64,0.4)" : "rgba(255,255,255,0.2)" }}
-                >
-                  {dl.version}
-                </p>
-              </a>
-            );
-          })}
+                </a>
+              );
+            });
+          })()}
         </div>
 
         {/* Other options link */}
