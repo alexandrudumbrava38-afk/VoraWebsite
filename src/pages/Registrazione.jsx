@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Zap, Eye, EyeOff, Cpu, Wand2, ArrowRight, Check } from "lucide-react";
+import { supabase } from '../lib/supabase'; // <-- INIETTATO SUPABASE
 
 const ACCOUNT_TYPES = [
   {
@@ -29,21 +30,65 @@ export default function Registrazione() {
     const e = {};
     if (!form.nome.trim()) e.nome = "Il nome è obbligatorio";
     if (!form.email.includes("@")) e.email = "Email non valida";
-    if (form.password.length < 8) e.password = "Almeno 8 caratteri";
+    if (form.password.length < 6) e.password = "Almeno 6 caratteri per Supabase";
     return e;
   };
 
-  const handleSubmit = (ev) => {
+  // --- ECCO LA VERA LOGICA INIETTATA ---
+  const handleSubmit = async (ev) => {
     ev.preventDefault();
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
+    
     setLoading(true);
-    // Simula chiamata API
-    setTimeout(() => {
+
+    try {
+      // 1. Crea l'utente in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: {
+            full_name: form.nome, // Salviamo anche il nome nel profilo nascosto di Supabase
+          }
+        }
+      });
+
+      if (authError) {
+        setErrors({ form: authError.message });
+        setLoading(false);
+        return;
+      }
+
+      // 2. Crea il profilo pubblico nella nostra tabella
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: authData.user.id,
+              role: accountType, // Usa fornitore o richiedente
+              vora_balance: 0
+            }
+          ]);
+
+        if (profileError) {
+          console.error("Errore profilo:", profileError);
+          setErrors({ form: "Account creato ma errore nel salvataggio profilo." });
+          setLoading(false);
+          return;
+        }
+
+        // 3. Tutto andato a buon fine, naviga alla pagina successiva!
+        setLoading(false);
+        navigate("/tutorial-wallet"); 
+      }
+    } catch (err) {
+      setErrors({ form: "Errore di connessione." });
       setLoading(false);
-      navigate("/tutorial-wallet");
-    }, 1200);
+    }
   };
+  // ------------------------------------
 
   const field = (name, value) =>
     setForm((p) => ({ ...p, [name]: value }));
@@ -53,7 +98,6 @@ export default function Registrazione() {
       className="min-h-screen flex flex-col"
       style={{ backgroundColor: "#F5F0F6" }}
     >
-      {/* Minimal header */}
       <header className="flex items-center justify-between px-8 py-5">
         <Link to="/" className="flex items-center gap-2.5 group">
           <div
@@ -68,16 +112,14 @@ export default function Registrazione() {
         </Link>
         <p className="text-sm" style={{ color: "rgba(9,21,64,0.4)" }}>
           Hai già un account?{" "}
-          <Link to="/" className="font-semibold underline underline-offset-2" style={{ color: "#091540" }}>
+          <Link to="/login" className="font-semibold underline underline-offset-2" style={{ color: "#091540" }}>
             Accedi
           </Link>
         </p>
       </header>
 
-      {/* Main content */}
       <main className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
-          {/* Card */}
           <div
             className="rounded-3xl p-8 sm:p-10"
             style={{
@@ -86,7 +128,6 @@ export default function Registrazione() {
               boxShadow: "0 16px 48px rgba(9,21,64,0.08)",
             }}
           >
-            {/* Heading */}
             <div className="mb-8">
               <h1
                 className="text-3xl font-black tracking-tight font-space-grotesk leading-tight"
@@ -99,8 +140,14 @@ export default function Registrazione() {
               </p>
             </div>
 
+            {/* Mostriamo eventuali errori generali (es. email già usata) */}
+            {errors.form && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 text-sm rounded-lg">
+                {errors.form}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-              {/* Account type toggle */}
               <div>
                 <label
                   className="block text-xs font-bold uppercase tracking-widest mb-3"
@@ -172,7 +219,6 @@ export default function Registrazione() {
                 </div>
               </div>
 
-              {/* Nome */}
               <div>
                 <label
                   htmlFor="nome"
@@ -196,21 +242,12 @@ export default function Registrazione() {
                       : "1.5px solid rgba(9,21,64,0.1)",
                     color: "#091540",
                   }}
-                  onFocus={(e) =>
-                    (e.target.style.border = "1.5px solid rgba(9,21,64,0.45)")
-                  }
-                  onBlur={(e) =>
-                    (e.target.style.border = errors.nome
-                      ? "1.5px solid #ef4444"
-                      : "1.5px solid rgba(9,21,64,0.1)")
-                  }
                 />
                 {errors.nome && (
                   <p className="text-xs text-red-500 mt-1">{errors.nome}</p>
                 )}
               </div>
 
-              {/* Email */}
               <div>
                 <label
                   htmlFor="email"
@@ -234,21 +271,12 @@ export default function Registrazione() {
                       : "1.5px solid rgba(9,21,64,0.1)",
                     color: "#091540",
                   }}
-                  onFocus={(e) =>
-                    (e.target.style.border = "1.5px solid rgba(9,21,64,0.45)")
-                  }
-                  onBlur={(e) =>
-                    (e.target.style.border = errors.email
-                      ? "1.5px solid #ef4444"
-                      : "1.5px solid rgba(9,21,64,0.1)")
-                  }
                 />
                 {errors.email && (
                   <p className="text-xs text-red-500 mt-1">{errors.email}</p>
                 )}
               </div>
 
-              {/* Password */}
               <div>
                 <label
                   htmlFor="password"
@@ -264,7 +292,7 @@ export default function Registrazione() {
                     autoComplete="new-password"
                     value={form.password}
                     onChange={(e) => field("password", e.target.value)}
-                    placeholder="Almeno 8 caratteri"
+                    placeholder="Almeno 6 caratteri"
                     className="w-full rounded-xl px-4 py-3 pr-12 text-sm outline-none transition-all duration-150"
                     style={{
                       backgroundColor: "#F5F0F6",
@@ -273,14 +301,6 @@ export default function Registrazione() {
                         : "1.5px solid rgba(9,21,64,0.1)",
                       color: "#091540",
                     }}
-                    onFocus={(e) =>
-                      (e.target.style.border = "1.5px solid rgba(9,21,64,0.45)")
-                    }
-                    onBlur={(e) =>
-                      (e.target.style.border = errors.password
-                        ? "1.5px solid #ef4444"
-                        : "1.5px solid rgba(9,21,64,0.1)")
-                    }
                   />
                   <button
                     type="button"
@@ -295,7 +315,6 @@ export default function Registrazione() {
                 {errors.password && (
                   <p className="text-xs text-red-500 mt-1">{errors.password}</p>
                 )}
-                {/* Password strength bar */}
                 {form.password.length > 0 && (
                   <div className="mt-2 flex gap-1">
                     {[1, 2, 3, 4].map((i) => (
@@ -316,7 +335,6 @@ export default function Registrazione() {
                 )}
               </div>
 
-              {/* Terms */}
               <p className="text-xs" style={{ color: "rgba(9,21,64,0.4)" }}>
                 Registrandoti accetti i nostri{" "}
                 <a href="#" className="underline underline-offset-2 font-medium" style={{ color: "#091540" }}>
@@ -329,7 +347,6 @@ export default function Registrazione() {
                 .
               </p>
 
-              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading}
@@ -338,10 +355,8 @@ export default function Registrazione() {
               >
                 {loading ? (
                   <>
-                    <span
-                      className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"
-                    />
-                    Creazione account…
+                    <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                    Creazione in corso…
                   </>
                 ) : (
                   <>
@@ -352,7 +367,6 @@ export default function Registrazione() {
             </form>
           </div>
 
-          {/* Social proof below card */}
           <p className="text-center text-xs mt-6" style={{ color: "rgba(9,21,64,0.3)" }}>
             Oltre 12.000 utenti già sulla rete · Nessuna carta di credito richiesta
           </p>

@@ -65,9 +65,9 @@ export default function Navbar() {
             AI Assistant
           </a>
           <div className="w-px h-5 bg-white/10" />
-          <a href="#" className="text-white/55 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-full hover:bg-white/5 border border-white/12">
+          <Link to="/login" className="text-white/55 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-full hover:bg-white/5 border border-white/12">
             Accedi
-          </a>
+          </Link>
           <Link
             to="/registrazione"
             className="font-semibold text-sm px-5 py-2 rounded-full transition-all duration-200 hover:scale-105 active:scale-95"
@@ -110,12 +110,12 @@ export default function Navbar() {
               <Sparkles size={13} strokeWidth={2} />
               AI Assistant
             </a>
-            <a
-              href="#"
+            <Link
+              to="/login"
               className="block font-semibold text-sm px-5 py-3 rounded-full text-center border border-white/15 text-white/70 transition-all hover:bg-white/5"
             >
               Accedi
-            </a>
+            </Link>
             <Link
               to="/registrazione"
               className="block font-semibold text-sm px-5 py-3 rounded-full text-center transition-all"

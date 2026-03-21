@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { supabase } from '../lib/supabase';
 import {
   Zap, LayoutDashboard, Cpu, Wallet, Sparkles, Settings,
   Menu, X, Circle, CheckCircle2, ArrowUpRight, Send, Bot,
   TrendingUp, Activity, Server, ChevronRight, LogOut,
   RefreshCw, Power,
 } from "lucide-react";
+import RichiedenteView from "../components/RichiedenteView";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer,
@@ -54,6 +56,14 @@ const NAV_ITEMS = [
   { id: "ai", label: "AI Help", icon: Sparkles },
   { id: "settings", label: "Settings", icon: Settings },
 ];
+
+/* ─── Helper Iniziali ───────────────────────────────────── */
+const getInitials = (name) => {
+  if (!name) return "VN";
+  const parts = name.split(" ");
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.substring(0, 2).toUpperCase();
+};
 
 /* ─── Custom Tooltip ────────────────────────────────────── */
 function CustomTooltip({ active, payload }) {
@@ -157,28 +167,30 @@ function NodeCard({ online, onToggle }) {
   );
 }
 
-/* ─── Tokens Card ───────────────────────────────────────── */
-function TokensCard() {
+/* ─── Tokens Card (Sincronizzata) ───────────────────────── */
+function TokensCard({ balance }) {
   const [count, setCount] = useState(0);
-  const target = 1847.32;
 
   useEffect(() => {
+    if (balance === 0 || !balance) {
+      setCount(0);
+      return;
+    }
     let start = 0;
-    const step = target / 60;
+    const step = balance / 60;
     const id = setInterval(() => {
       start += step;
-      if (start >= target) { setCount(target); clearInterval(id); }
+      if (start >= balance) { setCount(balance); clearInterval(id); }
       else setCount(parseFloat(start.toFixed(2)));
     }, 16);
     return () => clearInterval(id);
-  }, []);
+  }, [balance]);
 
   return (
     <div
       className="rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden"
       style={{ backgroundColor: "#F4F482" }}
     >
-      {/* Subtle grid */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -190,14 +202,14 @@ function TokensCard() {
         }}
       />
       <div className="relative">
-        <p className="text-navy/50 text-xs font-bold uppercase tracking-widest mb-1">Token Guadagnati</p>
+        <p className="text-navy/50 text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(9,21,64,0.5)" }}>Token Guadagnati</p>
         <div className="flex items-baseline gap-2">
-          <span className="text-4xl font-black font-space-grotesk text-navy">
+          <span className="text-4xl font-black font-space-grotesk text-navy" style={{ color: "#091540" }}>
             {count.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
-          <span className="text-navy/60 font-bold text-lg">NMB</span>
+          <span className="font-bold text-lg" style={{ color: "rgba(9,21,64,0.6)" }}>VORA</span>
         </div>
-        <p className="text-navy/45 text-xs mt-1">≈ €92.36 · Aggiornato ora</p>
+        <p className="text-xs mt-1" style={{ color: "rgba(9,21,64,0.45)" }}>≈ €{(count * 0.05).toFixed(2)} · Sincronizzato Live</p>
       </div>
 
       <div className="relative flex items-center justify-between">
@@ -206,7 +218,7 @@ function TokensCard() {
           style={{ backgroundColor: "rgba(9,21,64,0.1)", color: "#091540" }}
         >
           <TrendingUp size={12} strokeWidth={2.5} />
-          +12.4% questa settimana
+          Sincronizzato DB
         </div>
         <button
           className="flex items-center gap-1 text-xs font-semibold"
@@ -259,7 +271,7 @@ function PowerCard() {
         {[
           { label: "Job completati", val: "143" },
           { label: "Uptime", val: "97.2%" },
-          { label: "Guadagno/ora", val: "0.8 NMB" },
+          { label: "Guadagno/ora", val: "0.8 VORA" },
         ].map((s) => (
           <div key={s.label}>
             <p className="text-white/30">{s.label}</p>
@@ -346,7 +358,6 @@ function ExpertWidget() {
         maxHeight: "520px",
       }}
     >
-      {/* Header */}
       <div
         className="flex items-center gap-3 px-5 py-4 flex-shrink-0"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
@@ -372,7 +383,6 @@ function ExpertWidget() {
         </div>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3" style={{ minHeight: 0 }}>
         {messages.map((msg) => (
           <div
@@ -434,7 +444,6 @@ function ExpertWidget() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Quick prompts */}
       {messages.length <= 1 && (
         <div className="px-5 pb-3 flex flex-wrap gap-2">
           {EXPERT_PROMPTS.map((q) => (
@@ -454,7 +463,6 @@ function ExpertWidget() {
         </div>
       )}
 
-      {/* Input */}
       <div
         className="flex items-center gap-2 px-5 py-3 flex-shrink-0"
         style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
@@ -481,7 +489,7 @@ function ExpertWidget() {
 }
 
 /* ─── Sidebar ───────────────────────────────────────────── */
-function Sidebar({ active, setActive, collapsed, setCollapsed }) {
+function Sidebar({ active, setActive, collapsed, setCollapsed, userProfile, onLogout }) {
   return (
     <aside
       className="flex flex-col transition-all duration-300 flex-shrink-0"
@@ -492,7 +500,6 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
         minHeight: "100vh",
       }}
     >
-      {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 h-16 flex-shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div
           className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -511,7 +518,6 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
         </button>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
@@ -542,7 +548,6 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
         })}
       </nav>
 
-      {/* User section */}
       <div
         className="px-3 py-4 flex-shrink-0"
         style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
@@ -552,18 +557,18 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
             className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-black font-space-grotesk"
             style={{ backgroundColor: "rgba(244,244,130,0.15)", color: "#F4F482" }}
           >
-            MR
+            {getInitials(userProfile?.name)}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-white text-xs font-semibold truncate">Mario Rossi</p>
-              <p className="text-white/30 text-xs truncate">Fornitore</p>
+              <p className="text-white text-xs font-semibold truncate">{userProfile?.name || 'Caricamento...'}</p>
+              <p className="text-white/30 text-xs truncate capitalize">{userProfile?.role || 'Fornitore'}</p>
             </div>
           )}
           {!collapsed && (
-            <Link to="/" className="text-white/25 hover:text-white/60 transition-colors">
+            <button onClick={onLogout} className="text-white/25 hover:text-red-400 transition-colors" title="Esci">
               <LogOut size={15} />
-            </Link>
+            </button>
           )}
         </div>
       </div>
@@ -571,17 +576,58 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
   );
 }
 
-/* ─── Main Dashboard ────────────────────────────────────── */
+/* ─── Main Dashboard (COLLEGATA A SUPABASE) ─────────────── */
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [activeNav, setActiveNav] = useState("overview");
   const [collapsed, setCollapsed] = useState(false);
   const [nodeOnline, setNodeOnline] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#091540" }}>
+  // Stato Utente DB
+  const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-      {/* Mobile sidebar overlay */}
+  // Recupero Utente
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        navigate('/'); // Se non sei loggato vai via
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (data) {
+        setUserProfile({
+          name: session.user.user_metadata?.full_name || 'Miner',
+          email: session.user.email,
+          role: data.role,
+          balance: data.vora_balance
+        });
+      }
+      setLoading(false);
+    };
+    fetchUser();
+  }, [navigate]);
+
+  // Logout
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
+
+  if (loading) return <div className="min-h-screen bg-[#091540] text-white flex items-center justify-center">Caricamento rete Vora...</div>;
+
+  return (
+  <div className="flex min-h-screen h-screen" style={{ backgroundColor: "#091540" }}>
+
       {mobileSidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/60 md:hidden"
@@ -589,10 +635,9 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Sidebar — hidden on mobile, shown as overlay */}
       <div
         className={`
-          fixed inset-y-0 left-0 z-50 md:relative md:flex md:flex-shrink-0
+          fixed inset-y-0 left-0 z-50 md:fixed md:flex md:flex-shrink-0
           transition-transform duration-300
           ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
@@ -602,12 +647,12 @@ export default function Dashboard() {
           setActive={(id) => { setActiveNav(id); setMobileSidebarOpen(false); }}
           collapsed={collapsed}
           setCollapsed={setCollapsed}
+          userProfile={userProfile}
+          onLogout={handleLogout}
         />
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
+  <div className={`flex-1 flex flex-col min-w-0 ${collapsed ? 'md:pl-[68px]' : 'md:pl-[220px]'}`}>
         <header
           className="flex items-center gap-4 px-6 h-16 flex-shrink-0"
           style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", backgroundColor: "#060f2e" }}
@@ -636,52 +681,55 @@ export default function Dashboard() {
               className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black font-space-grotesk"
               style={{ backgroundColor: "rgba(244,244,130,0.15)", color: "#F4F482" }}
             >
-              MR
+              {getInitials(userProfile?.name)}
             </div>
           </div>
         </header>
 
-        {/* Page content */}
         <main className="flex-1 overflow-y-auto p-6">
-          {/* Welcome banner — only on overview */}
-          {activeNav === "overview" && (
-            <div
-              className="rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"
-              style={{
-                background: "linear-gradient(135deg, rgba(244,244,130,0.08), rgba(244,244,130,0.03))",
-                border: "1px solid rgba(244,244,130,0.12)",
-              }}
-            >
-              <div className="flex-1">
-                <p className="text-white font-bold font-space-grotesk">Buongiorno, Mario 👋</p>
-                <p className="text-white/40 text-sm mt-0.5">
-                  Il tuo nodo è {nodeOnline ? "attivo" : "offline"}. Hai guadagnato <span style={{ color: "#F4F482" }}>0.8 NMB</span> nelle ultime 24 ore.
-                </p>
+          {userProfile?.role === "richiedente" ? (
+            // If the user is a 'richiedente' render only the dedicated view
+            <RichiedenteView userProfile={userProfile} />
+          ) : (
+            // Otherwise render the default provider dashboard
+            <>
+              {activeNav === "overview" && (
+                <div
+                  className="rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(244,244,130,0.08), rgba(244,244,130,0.03))",
+                    border: "1px solid rgba(244,244,130,0.12)",
+                  }}
+                >
+                  <div className="flex-1">
+                    <p className="text-white font-bold font-space-grotesk">Buongiorno, {userProfile?.name?.split(' ')[0] || 'Miner'} 👋</p>
+                    <p className="text-white/40 text-sm mt-0.5">
+                      Il tuo nodo è {nodeOnline ? "attivo" : "offline"}. Hai guadagnato <span style={{ color: "#F4F482" }}>0.8 VORA</span> nelle ultime 24 ore.
+                    </p>
+                  </div>
+                  <Link
+                    to="/"
+                    className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full transition-all hover:scale-105"
+                    style={{ backgroundColor: "#F4F482", color: "#091540" }}
+                  >
+                    Invita un amico <ArrowUpRight size={13} />
+                  </Link>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+                <NodeCard online={nodeOnline} onToggle={() => setNodeOnline((v) => !v)} />
+                <TokensCard balance={userProfile?.balance} />
+                <PowerCard />
               </div>
-              <Link
-                to="/"
-                className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full transition-all hover:scale-105"
-                style={{ backgroundColor: "#F4F482", color: "#091540" }}
-              >
-                Invita un amico <ArrowUpRight size={13} />
-              </Link>
-            </div>
+
+              <div className="mb-5">
+                <QuickStats />
+              </div>
+
+              <ExpertWidget />
+            </>
           )}
-
-          {/* Main grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
-            <NodeCard online={nodeOnline} onToggle={() => setNodeOnline((v) => !v)} />
-            <TokensCard />
-            <PowerCard />
-          </div>
-
-          {/* Quick stats */}
-          <div className="mb-5">
-            <QuickStats />
-          </div>
-
-          {/* Expert AI widget — full width */}
-          <ExpertWidget />
         </main>
       </div>
     </div>

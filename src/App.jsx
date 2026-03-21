@@ -4,13 +4,15 @@ import Home from './pages/Home'
 import Registrazione from './pages/Registrazione'
 import TutorialWallet from './pages/TutorialWallet'
 import Dashboard from './pages/Dashboard'
+import Login from './pages/Login'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/registrazione" element={<Registrazione />} />
+  <Route path="/registrazione" element={<Registrazione />} />
+  <Route path="/login" element={<Login />} />
         <Route path="/tutorial-wallet" element={<TutorialWallet />} />
         <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
