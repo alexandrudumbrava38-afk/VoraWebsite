@@ -5,16 +5,32 @@ import Registrazione from './pages/Registrazione'
 import TutorialWallet from './pages/TutorialWallet'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
+import StartRender from './pages/StartRender'
+import SharePC from './pages/SharePC'
+import About from './pages/About'
+import Showcase from './pages/Showcase'
+import Blog from './pages/Blog'
+import Contact from './pages/Contact'
+import Investors from './pages/Investors'
+import PricingPage from './pages/PricingPage'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-  <Route path="/registrazione" element={<Registrazione />} />
-  <Route path="/login" element={<Login />} />
+        <Route path="/registrazione" element={<Registrazione />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/tutorial-wallet" element={<TutorialWallet />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/start-render" element={<StartRender />} />
+        <Route path="/share-pc" element={<SharePC />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/showcase" element={<Showcase />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/investors" element={<Investors />} />
+        <Route path="/pricing" element={<PricingPage />} />
       </Routes>
     </BrowserRouter>
   )

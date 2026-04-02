@@ -1,8 +1,148 @@
-import { useState, useEffect } from "react";
-import { Menu, X, Zap, Sparkles } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Menu, X, Zap, Sparkles, ChevronDown, Sparkle, TrendingUp, BarChart3, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const NAV_LINKS = ["Products", "Pricing", "Docs"];
+const SOLUTIONS_ITEMS = [
+  {
+    icon: Sparkle,
+    title: "For Creators",
+    desc: "Upload, render, and export your 3D projects faster than ever.",
+    to: "/start-render",
+  },
+  {
+    icon: TrendingUp,
+    title: "For Providers",
+    desc: "Monetize your idle GPU power. Earn passive income securely.",
+    to: "/share-pc",
+  },
+];
+
+const COMPANY_ITEMS = [
+  {
+    icon: BarChart3,
+    title: "About Us",
+    desc: "Our mission to reduce hardware waste and energy consumption.",
+    to: "/about",
+  },
+  {
+    icon: TrendingUp,
+    title: "Investors",
+    desc: "Key metrics, vision, and seed round information.",
+    to: "/investors",
+  },
+  {
+    icon: FileText,
+    title: "Blog & Docs",
+    desc: "Technical guides and company updates.",
+    to: "/blog",
+  },
+];
+
+/* Rich card dropdown (used by Solutions) */
+function SolutionsDropdown() {
+  const [open, setOpen] = useState(false);
+  const timerRef = useRef(null);
+
+  const handleEnter = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setOpen(true);
+  };
+  const handleLeave = () => {
+    timerRef.current = setTimeout(() => setOpen(false), 120);
+  };
+
+  return (
+    <div className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+      <button
+        type="button"
+        className={`text-sm font-medium transition-all duration-150 flex items-center gap-1 px-4 py-1.5 rounded-full ${open ? 'bg-blue-600 text-white' : 'text-white/55 hover:text-white'}`}
+        onClick={() => setOpen((s) => !s)}
+        aria-haspopup="true"
+        aria-expanded={open}
+      >
+        Solutions
+        <ChevronDown size={14} className={`transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      <div
+        className={`absolute left-0 mt-0 pt-2 w-80 z-50 transition-all duration-150 transform origin-top ${open ? 'opacity-100 pointer-events-auto translate-y-0' : 'opacity-0 pointer-events-none -translate-y-2'}`}
+      >
+        <div className="bg-slate-900 border border-slate-800 rounded-lg shadow-2xl p-4 space-y-2">
+          {SOLUTIONS_ITEMS.map((item) => (
+            <Link
+              key={item.title}
+              to={item.to}
+              onClick={() => setOpen(false)}
+              className="block rounded-lg p-4 hover:bg-slate-800/70 transition-colors group"
+            >
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
+                style={{ backgroundColor: 'rgba(244,244,130,0.12)' }}
+              >
+                <item.icon size={20} style={{ color: '#F4F482' }} strokeWidth={1.8} />
+              </div>
+              <div className="font-semibold text-sm text-white mb-1">{item.title}</div>
+              <p className="text-xs text-white/45 leading-relaxed">{item.desc}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* Rich card dropdown for Company */
+function CompanyDropdown() {
+  const [open, setOpen] = useState(false);
+  const timerRef = useRef(null);
+
+  const handleEnter = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setOpen(true);
+  };
+  const handleLeave = () => {
+    timerRef.current = setTimeout(() => setOpen(false), 120);
+  };
+
+  return (
+    <div className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+      <button
+        type="button"
+        className={`text-sm font-medium transition-all duration-150 flex items-center gap-1 px-4 py-1.5 rounded-full ${open ? 'bg-blue-600 text-white' : 'text-white/55 hover:text-white'}`}
+        onClick={() => setOpen((s) => !s)}
+        aria-haspopup="true"
+        aria-expanded={open}
+      >
+        Company
+        <ChevronDown size={14} className={`transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      <div
+        className={`absolute right-0 mt-0 pt-2 w-80 z-50 transition-all duration-150 transform origin-top ${open ? 'opacity-100 pointer-events-auto translate-y-0' : 'opacity-0 pointer-events-none -translate-y-2'}`}
+      >
+        <div className="bg-slate-900 border border-slate-800 rounded-lg shadow-2xl p-4 space-y-2">
+          {COMPANY_ITEMS.map((item) => (
+            <Link
+              key={item.title}
+              to={item.to}
+              onClick={() => setOpen(false)}
+              className="block rounded-lg p-4 hover:bg-slate-800/70 transition-colors group"
+            >
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
+                style={{ backgroundColor: 'rgba(244,244,130,0.12)' }}
+              >
+                <item.icon size={20} style={{ color: '#F4F482' }} strokeWidth={1.8} />
+              </div>
+              <div className="font-semibold text-sm text-white mb-1">{item.title}</div>
+              <p className="text-xs text-white/45 leading-relaxed">{item.desc}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -24,7 +164,7 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <a href="#" className="flex items-center gap-2.5 group">
+        <Link to="/" className="flex items-center gap-2.5 group">
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200"
             style={{ backgroundColor: "#F4F482" }}
@@ -34,19 +174,18 @@ export default function Navbar() {
           <span className="font-bold text-xl text-white font-space-grotesk tracking-tight">
             Vora
           </span>
-        </a>
+        </Link>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link}
-              href="#"
-              className="text-white/55 hover:text-white text-sm font-medium transition-colors duration-150"
-            >
-              {link}
-            </a>
-          ))}
+          <SolutionsDropdown />
+          <Link to="/pricing" className="text-white/55 hover:text-white text-sm font-medium transition-colors duration-150">
+            Pricing
+          </Link>
+          <Link to="/showcase" className="text-white/55 hover:text-white text-sm font-medium transition-colors duration-150">
+            Showcase
+          </Link>
+          <CompanyDropdown />
         </div>
 
         {/* Desktop CTA */}
@@ -91,15 +230,26 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden bg-navy/98 backdrop-blur-xl border-b border-white/10 px-6 py-5">
           <div className="space-y-1 mb-5">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link}
-                href="#"
-                className="block text-white/60 hover:text-white text-sm font-medium py-3 border-b border-white/5 transition-colors"
-              >
-                {link}
-              </a>
-            ))}
+            {/* Solutions */}
+            <div className="py-2 border-b border-white/5">
+              <div className="text-white/60 text-sm font-medium mb-1">Solutions</div>
+              <div className="pl-2">
+                {SOLUTIONS_ITEMS.map((item) => (
+                  <Link key={item.title} to={item.to} onClick={() => setMenuOpen(false)} className="block text-white/50 hover:text-white text-sm py-2">{item.title}</Link>
+                ))}
+              </div>
+            </div>
+            <Link to="/pricing" onClick={() => setMenuOpen(false)} className="block text-white/60 hover:text-white text-sm font-medium py-3 border-b border-white/5 transition-colors">Pricing</Link>
+            <Link to="/showcase" onClick={() => setMenuOpen(false)} className="block text-white/60 hover:text-white text-sm font-medium py-3 border-b border-white/5 transition-colors">Showcase</Link>
+            {/* Company */}
+            <div className="py-2">
+              <div className="text-white/60 text-sm font-medium mb-1">Company</div>
+              <div className="pl-2">
+                {COMPANY_ITEMS.map((item) => (
+                  <Link key={item.title} to={item.to} onClick={() => setMenuOpen(false)} className="block text-white/50 hover:text-white text-sm py-2">{item.title}</Link>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="flex flex-col gap-3 pt-1">
             <a

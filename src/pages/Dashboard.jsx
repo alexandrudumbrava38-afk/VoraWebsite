@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from '../lib/supabase';
 import {
   Zap, LayoutDashboard, Cpu, Wallet, Sparkles, Settings,
-  Menu, X, Circle, CheckCircle2, ArrowUpRight, Send, Bot,
-  TrendingUp, Activity, Server, ChevronRight, LogOut,
+  Menu, Send, Bot, TrendingUp, Activity, Server, ChevronRight, LogOut,
   RefreshCw, Power,
 } from "lucide-react";
 import RichiedenteView from "../components/RichiedenteView";
+import HardwareStats from "../components/HardwareStats";
+import WalletView from "../components/WalletView";
+import AIHelp from "../components/AIHelp";
+import SettingsView from "../components/SettingsView";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer,
@@ -53,7 +56,7 @@ const NAV_ITEMS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "hardware", label: "Hardware Stats", icon: Cpu },
   { id: "wallet", label: "Wallet", icon: Wallet },
-  { id: "ai", label: "AI Help", icon: Sparkles },
+  { id: "help", label: "AI Help", icon: Sparkles },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
@@ -489,7 +492,7 @@ function ExpertWidget() {
 }
 
 /* ─── Sidebar ───────────────────────────────────────────── */
-function Sidebar({ active, setActive, collapsed, setCollapsed, userProfile, onLogout }) {
+function Sidebar({ activePage, setActivePage, collapsed, setCollapsed, userProfile, onLogout }) {
   return (
     <aside
       className="flex flex-col transition-all duration-300 flex-shrink-0"
@@ -521,11 +524,11 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, userProfile, onLo
       <nav className="flex-1 px-3 py-4 space-y-1">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          const isActive = active === item.id;
+          const isActive = activePage === item.id;
           return (
             <button
               key={item.id}
-              onClick={() => setActive(item.id)}
+              onClick={() => setActivePage(item.id)}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left group"
               style={
                 isActive
@@ -579,7 +582,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, userProfile, onLo
 /* ─── Main Dashboard (COLLEGATA A SUPABASE) ─────────────── */
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [activeNav, setActiveNav] = useState("overview");
+  const [activePage, setActivePage] = useState("overview");
   const [collapsed, setCollapsed] = useState(false);
   const [nodeOnline, setNodeOnline] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -598,7 +601,7 @@ export default function Dashboard() {
         return;
       }
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
@@ -643,8 +646,8 @@ export default function Dashboard() {
         `}
       >
         <Sidebar
-          active={activeNav}
-          setActive={(id) => { setActiveNav(id); setMobileSidebarOpen(false); }}
+          activePage={activePage}
+          setActivePage={(id) => { setActivePage(id); setMobileSidebarOpen(false); }}
           collapsed={collapsed}
           setCollapsed={setCollapsed}
           userProfile={userProfile}
@@ -665,7 +668,7 @@ export default function Dashboard() {
           </button>
           <div>
             <h1 className="text-white font-bold font-space-grotesk text-base leading-tight capitalize">
-              {NAV_ITEMS.find((n) => n.id === activeNav)?.label ?? "Overview"}
+              {NAV_ITEMS.find((n) => n.id === activePage)?.label ?? "Overview"}
             </h1>
             <p className="text-white/25 text-xs">Vora Dashboard · {new Date().toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" })}</p>
           </div>
@@ -687,49 +690,49 @@ export default function Dashboard() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-6">
-          {userProfile?.role === "richiedente" ? (
-            // If the user is a 'richiedente' render only the dedicated view
-            <RichiedenteView userProfile={userProfile} />
-          ) : (
-            // Otherwise render the default provider dashboard
-            <>
-              {activeNav === "overview" && (
-                <div
-                  className="rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(244,244,130,0.08), rgba(244,244,130,0.03))",
-                    border: "1px solid rgba(244,244,130,0.12)",
-                  }}
-                >
-                  <div className="flex-1">
-                    <p className="text-white font-bold font-space-grotesk">Buongiorno, {userProfile?.name?.split(' ')[0] || 'Miner'} 👋</p>
-                    <p className="text-white/40 text-sm mt-0.5">
-                      Il tuo nodo è {nodeOnline ? "attivo" : "offline"}. Hai guadagnato <span style={{ color: "#F4F482" }}>0.8 VORA</span> nelle ultime 24 ore.
-                    </p>
-                  </div>
-                  <Link
-                    to="/"
-                    className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full transition-all hover:scale-105"
-                    style={{ backgroundColor: "#F4F482", color: "#091540" }}
-                  >
-                    Invita un amico <ArrowUpRight size={13} />
-                  </Link>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
-                <NodeCard online={nodeOnline} onToggle={() => setNodeOnline((v) => !v)} />
-                <TokensCard balance={userProfile?.balance} />
-                <PowerCard />
-              </div>
-
-              <div className="mb-5">
-                <QuickStats />
-              </div>
-
-              <ExpertWidget />
-            </>
+          {/* Render content based on activePage */}
+          {activePage === 'overview' && (
+            <div className="mb-6">
+              <RichiedenteView userProfile={userProfile} />
+            </div>
           )}
+
+          {activePage === 'hardware' && (
+            <div className="mb-6">
+              <HardwareStats />
+            </div>
+          )}
+
+          {activePage === 'wallet' && (
+            <div className="mb-6">
+              <WalletView balance={userProfile?.balance ?? 0} />
+            </div>
+          )}
+
+          {activePage === 'help' && (
+            <div className="mb-6">
+              <AIHelp />
+            </div>
+          )}
+
+          {activePage === 'settings' && (
+            <div className="mb-6">
+              <SettingsView initial={{ name: userProfile?.name, email: userProfile?.email, apiKey: '' }} />
+            </div>
+          )}
+
+          {/* Default provider dashboard widgets (overview + stats) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+            <NodeCard online={nodeOnline} onToggle={() => setNodeOnline((v) => !v)} />
+            <TokensCard balance={userProfile?.balance} />
+            <PowerCard />
+          </div>
+
+          <div className="mb-5">
+            <QuickStats />
+          </div>
+
+          <ExpertWidget />
         </main>
       </div>
     </div>

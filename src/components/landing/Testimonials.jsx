@@ -77,7 +77,7 @@ function CategoryBadge({ label }) {
   const isCreator = label === "Digital Creator";
   return (
     <span
-      className="text-xs font-semibold px-2.5 py-1 rounded-full"
+      className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap"
       style={
         isCreator
           ? { backgroundColor: "rgba(244,244,130,0.12)", color: "#F4F482" }
@@ -93,31 +93,24 @@ export default function Testimonials() {
   return (
     <section
       className="py-24 md:py-32 relative overflow-hidden"
-      style={{ backgroundColor: "#091540" }}
+      style={{ backgroundColor: "#0c1d4d" }}
     >
-      {/* Grid overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(245,240,246,0.022) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(245,240,246,0.022) 1px, transparent 1px)
-          `,
-          backgroundSize: "60px 60px",
-        }}
-      />
+      {/* Subtle top/bottom gradient borders for depth */}
+      <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(244,244,130,0.15), transparent)" }} />
+      <div className="absolute inset-x-0 bottom-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(244,244,130,0.08), transparent)" }} />
+
       {/* Glow */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] pointer-events-none"
         style={{
-          background: "radial-gradient(ellipse at center, rgba(244,244,130,0.05), transparent 65%)",
+          background: "radial-gradient(ellipse at center, rgba(244,244,130,0.04), transparent 60%)",
         }}
       />
 
       <div className="relative max-w-7xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-16">
-          <p className="text-xs font-bold uppercase tracking-widest mb-4 text-white/25">
+          <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "rgba(244,244,130,0.45)" }}>
             Social Proof
           </p>
           <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight font-space-grotesk leading-tight">
@@ -125,7 +118,7 @@ export default function Testimonials() {
             <br />
             <span style={{ color: "#F4F482" }}>non torna indietro.</span>
           </h2>
-          <p className="mt-5 text-white/45 text-base md:text-lg max-w-lg mx-auto leading-relaxed">
+          <p className="mt-5 text-white/40 text-base md:text-lg max-w-lg mx-auto leading-relaxed">
             Creator indipendenti e studi professionali condividono i risultati
             reali ottenuti con la piattaforma.
           </p>
@@ -138,8 +131,8 @@ export default function Testimonials() {
               key={r.name}
               className="flex flex-col gap-5 rounded-2xl p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30"
               style={{
-                background: "rgba(255,255,255,0.035)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: "linear-gradient(135deg, rgba(244,244,130,0.04), rgba(255,255,255,0.025))",
+                border: "1px solid rgba(244,244,130,0.08)",
               }}
             >
               {/* Top row */}
@@ -148,13 +141,13 @@ export default function Testimonials() {
                   {/* Avatar */}
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-black font-space-grotesk"
-                    style={{ backgroundColor: "rgba(244,244,130,0.12)", color: "#F4F482" }}
+                    style={{ backgroundColor: "rgba(244,244,130,0.10)", color: "#F4F482" }}
                   >
                     {r.avatar}
                   </div>
                   <div>
                     <p className="text-white font-semibold text-sm leading-tight">{r.name}</p>
-                    <p className="text-white/35 text-xs mt-0.5">{r.role}</p>
+                    <p className="text-white/30 text-xs mt-0.5">{r.role}</p>
                   </div>
                 </div>
                 <CategoryBadge label={r.category} />
@@ -164,14 +157,14 @@ export default function Testimonials() {
               <Stars count={r.stars} />
 
               {/* Quote */}
-              <blockquote className="text-white/60 text-sm leading-relaxed flex-1">
+              <blockquote className="text-white/55 text-sm leading-relaxed flex-1">
                 "{r.quote}"
               </blockquote>
 
               {/* Highlight pill */}
               <div
                 className="inline-flex items-center gap-2 self-start px-3 py-1.5 rounded-full text-xs font-bold"
-                style={{ backgroundColor: "rgba(244,244,130,0.1)", color: "#F4F482", border: "1px solid rgba(244,244,130,0.18)" }}
+                style={{ backgroundColor: "rgba(244,244,130,0.08)", color: "#F4F482", border: "1px solid rgba(244,244,130,0.15)" }}
               >
                 ✦ {r.highlight}
               </div>
@@ -183,22 +176,22 @@ export default function Testimonials() {
         <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-6 text-center sm:text-left">
           <div>
             <span className="text-5xl font-black font-space-grotesk" style={{ color: "#F4F482" }}>4.9</span>
-            <span className="text-white/30 text-lg ml-1">/5</span>
+            <span className="text-white/25 text-lg ml-1">/5</span>
           </div>
-          <div className="w-px h-12 bg-white/10 hidden sm:block" />
+          <div className="w-px h-12 hidden sm:block" style={{ backgroundColor: "rgba(244,244,130,0.12)" }} />
           <div>
             <Stars count={5} />
-            <p className="text-white/35 text-sm mt-1.5">Basato su oltre 1.200 recensioni verificate</p>
+            <p className="text-white/30 text-sm mt-1.5">Basato su oltre 1.200 recensioni verificate</p>
           </div>
-          <div className="w-px h-12 bg-white/10 hidden sm:block" />
+          <div className="w-px h-12 hidden sm:block" style={{ backgroundColor: "rgba(244,244,130,0.12)" }} />
           <div className="flex flex-col gap-1">
-            <span className="text-white/55 text-sm font-medium">Disponibile su</span>
-            <div className="flex gap-3 text-white/30 text-xs font-semibold">
-              <span className="hover:text-white/60 cursor-pointer transition-colors">Product Hunt</span>
+            <span className="text-white/45 text-sm font-medium">Disponibile su</span>
+            <div className="flex gap-3 text-white/25 text-xs font-semibold">
+              <span className="hover:text-white/50 cursor-pointer transition-colors">Product Hunt</span>
               <span>·</span>
-              <span className="hover:text-white/60 cursor-pointer transition-colors">G2</span>
+              <span className="hover:text-white/50 cursor-pointer transition-colors">G2</span>
               <span>·</span>
-              <span className="hover:text-white/60 cursor-pointer transition-colors">Trustpilot</span>
+              <span className="hover:text-white/50 cursor-pointer transition-colors">Trustpilot</span>
             </div>
           </div>
         </div>

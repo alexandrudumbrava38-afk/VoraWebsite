@@ -70,15 +70,12 @@ export default function HeroDownload() {
       {/* Headline */}
       <div className="text-center max-w-4xl mx-auto px-6 animate-fade-up-delay-1">
         <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-white leading-[1.05] tracking-tight font-space-grotesk">
-          Libera la potenza
+          Render in minutes.
           <br />
-          <span style={{ color: "#F4F482" }}>del tuo hardware.</span>
+          <span style={{ color: "#F4F482" }}>Not hours.</span>
         </h1>
         <p className="mt-6 text-base md:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed">
-          Vora è il primo supercomputer distribuito. Installa il nodo, metti in
-          condivisione la tua potenza di calcolo inattiva e inizia a guadagnare
-          $VORA Token fin dal primo giorno.
-          così paghi solo per ciò che usi davvero, e non un centesimo di più.
+          Access global computing power from thousands of GPUs. Render your 3D projects at a fraction of traditional cloud costs. Pay only for what you use.
         </p>
       </div>
 

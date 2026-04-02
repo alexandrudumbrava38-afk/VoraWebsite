@@ -12,26 +12,26 @@ const TRACKS = [
       {
         number: "01",
         icon: Cpu,
-  title: "Installa il nodo Vora",
+        title: "Install the App",
         description:
-          "Scarica l'app in 2 minuti. Il client si installa silenziosamente e riconosce automaticamente CPU, GPU e RAM disponibili.",
-        tag: "Windows · macOS · Linux · Android",
+          "Download the Vora client in 2 minutes. It runs quietly in the background and automatically detects your available GPU and CPU power.",
+        tag: "Windows · macOS · Linux",
       },
       {
         number: "02",
         icon: Wallet,
-        title: "Imposta la tua disponibilità",
+        title: "Set Your Limits",
         description:
-          "Scegli quante risorse condividere e quando. Vora usa solo la potenza in eccesso — il tuo PC rimane sempre veloce per te e riceverai $VORA Token per le risorse fornite.",
-        tag: "Controllo granulare al 100%",
+          "Choose how much power to share and when. Vora only uses your idle resources, so your PC stays fast for your own tasks.",
+        tag: "100% Granular Control",
       },
       {
         number: "03",
         icon: Rocket,
-        title: "Inizia a guadagnare",
+        title: "Start Earning",
         description:
-          "Ogni job completato genera crediti convertibili in cash o sconti sulla piattaforma. Dashboard in tempo reale con i tuoi guadagni.",
-        tag: "Pagamenti ogni settimana",
+          "Every completed render generates credits you can withdraw as real cash directly to your bank account, or use for your own projects. Track your income in real-time.",
+        tag: "Weekly Fiat Payouts",
       },
     ],
   },
@@ -46,26 +46,26 @@ const TRACKS = [
       {
         number: "01",
         icon: Layers,
-        title: "Carica il tuo job",
+        title: "Upload Your Project",
         description:
-          "Trascina il job (render, training o batch). Vora analizza il carico, spezza il lavoro e lo distribuisce sui nodi più adatti, ricompensando i provider in $VORA Token.",
-        tag: "Blender · Cinema 4D · PyTorch · Stable Diffusion",
+          "Drag and drop your 3D/video file or use our native Blender plugin. We instantly analyze your scene and calculate the exact credit cost.",
+        tag: "Upload",
       },
       {
         number: "02",
         icon: Wand2,
-        title: "Distribuisci in un click",
+        title: "1-Click Rendering",
         description:
-          "Il rendering o il training viene spezzato in task paralleli e distribuito su decine di nodi contemporaneamente. Nessuna configurazione.",
-        tag: "Auto-scaling · Zero DevOps",
+          "Your project is split into single frames and processed in parallel by hundreds of GPUs. Hours of rendering turned into minutes. Zero setup required.",
+        tag: "Render",
       },
       {
         number: "03",
         icon: ArrowRight,
-        title: "Scarica il risultato",
+        title: "Download & Pay as You Go",
         description:
-          "In minuti ricevi notifica di completamento. Scarica l'output direttamente dalla dashboard o via API. Paga solo per i secondi utilizzati.",
-        tag: "Pay-per-second · Nessun minimo",
+          "Get notified instantly when your files are ready. Download the high-quality output and pay only for the exact seconds of computing power you used.",
+        tag: "Download",
       },
     ],
   },
